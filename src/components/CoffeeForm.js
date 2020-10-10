@@ -88,18 +88,55 @@ const CoffeeForm = () => {
     special: "",
   };
 
-  const schema = () => {};
+  const schema = yup.object().shape({
+    name: yup.string().min(2).required("Enter a Name"),
+    tel: yup
+      .string()
+      .matches(/^\d+$/, "Enter valid number")
+      .min(10)
+      .required("Enter a Phone Number"),
+    coffeeType: yup.string().required("Select Coffee Type"),
+    temperature: yup.string().required("Select Coffee Temperature"),
+    milkChoice: yup.string().required("Select choice of Milk"),
+    noFoam: yup.boolean(),
+    cinnamon: yup.boolean(),
+    caramelDrizzle: yup.boolean(),
+    whippedCream: yup.boolean(),
+    special: yup.string(),
+  });
 
   const [order, setOrder] = useState(defaultOrder);
   const [orders, setOrders] = useState([]);
   const [edit, setEdit] = useState(false);
+  const [buttonDisabled, setButtonDisabled] = useState(false);
   const [errors, setErrors] = useState({
     ...defaultOrder,
     noFoam: "",
     cinnamon: "",
     caramelDrizzle: "",
     whippedCream: "",
+    coffeeType: "",
+    temperature: "",
+    milkChoice: "",
   });
+
+  useEffect(() => {
+    schema.isValid(order).then((valid) => {
+      setButtonDisabled(!valid);
+    });
+  }, [order]);
+
+  const validate = (e) => {
+    e.persist();
+
+    yup
+      .reach(schema, e.target.name)
+      .validate(e.target.value)
+      .then((valid) => setErrors({ ...errors, [e.target.name]: "" }))
+      .catch((error) => {
+        setErrors({ ...errors, [e.target.name]: error.errors[0] });
+      });
+  };
 
   const handleChange = (e) => {
     const value =
@@ -128,9 +165,21 @@ const CoffeeForm = () => {
     setOrders(listOfOrders);
     setOrder(defaultOrder);
     setEdit(false);
+
+    const editButtons = document.querySelectorAll(".edit");
+    editButtons.forEach((button) => {
+      button.disabled = false;
+    });
+    document.querySelector(".Order__Button").textContent = "Order";
   };
 
   const editOrder = (myOrder) => {
+    document.querySelector(".Order__Button").textContent = "Save";
+    const editButtons = document.querySelectorAll(".edit");
+    editButtons.forEach((button) => {
+      button.disabled = true;
+    });
+
     setEdit(true);
     setOrder(myOrder);
   };
@@ -140,8 +189,6 @@ const CoffeeForm = () => {
     listOfOrders.splice(listOfOrders.indexOf(myOrder), 1);
     setOrders(listOfOrders);
   };
-
-  const validate = (e) => {};
 
   return (
     <div>
@@ -164,6 +211,7 @@ const CoffeeForm = () => {
             onChange={handleChange}
           />
         </label>
+        <p style={{ color: "red", fontSize: ".8rem" }}>{errors.name}</p>
         <label htmlFor="tel">
           Tel:
           <input
@@ -176,6 +224,7 @@ const CoffeeForm = () => {
             onChange={handleChange}
           />
         </label>
+        <p style={{ color: "red", fontSize: ".8rem" }}>{errors.tel}</p>
         <label htmlFor="coffeeType">
           Type:
           <select
@@ -193,7 +242,7 @@ const CoffeeForm = () => {
             <option value="Cappucino">Cappucino</option>
           </select>
         </label>
-
+        <p style={{ color: "red", fontSize: ".8rem" }}>{errors.coffeeType}</p>
         <label>
           Temperature:
           <select
@@ -207,7 +256,7 @@ const CoffeeForm = () => {
             <option value="Hot">Hot</option>
           </select>
         </label>
-
+        <p style={{ color: "red", fontSize: ".8rem" }}>{errors.temperature}</p>
         <label htmlFor="milkChoice">
           Choice of Milk:
           <select
@@ -226,6 +275,7 @@ const CoffeeForm = () => {
             <option value="Skim">Skim</option>
           </select>
         </label>
+        <p style={{ color: "red", fontSize: ".8rem" }}>{errors.milkChoice}</p>
         <p>Additions:</p>
         <div
           style={{
@@ -246,6 +296,7 @@ const CoffeeForm = () => {
             />
             No Foam
           </label>
+          <p style={{ color: "red", fontSize: ".8rem" }}>{errors.noFoam}</p>
           <label>
             <input
               type="checkbox"
@@ -257,6 +308,7 @@ const CoffeeForm = () => {
             />
             Cinnamon
           </label>
+          <p style={{ color: "red", fontSize: ".8rem" }}>{errors.cinnamon}</p>
           <label>
             <input
               type="checkbox"
@@ -268,6 +320,9 @@ const CoffeeForm = () => {
             />
             Caramel Drizzle
           </label>
+          <p style={{ color: "red", fontSize: ".8rem" }}>
+            {errors.caramelDrizzle}
+          </p>
           <label>
             <input
               type="checkbox"
@@ -279,6 +334,9 @@ const CoffeeForm = () => {
             />
             Whipped Cream
           </label>
+          <p style={{ color: "red", fontSize: ".8rem" }}>
+            {errors.whippedCream}
+          </p>
         </div>
 
         <label htmlFor="special">
@@ -293,7 +351,14 @@ const CoffeeForm = () => {
             rows="5"
           />
         </label>
-        <button type="submit" name="submit" datat-cy="submit">
+        <p style={{ color: "red", fontSize: ".8rem" }}>{errors.special}</p>
+        <button
+          type="submit"
+          name="submit"
+          className="Order__Button"
+          disabled={buttonDisabled}
+          data-cy="submit"
+        >
           Order
         </button>
       </CoffeeNiceForm>
@@ -303,20 +368,30 @@ const CoffeeForm = () => {
           <OrderCard key={myOrder.id}>
             {/* <pre>{JSON.stringify(myOrder, 2, null)}</pre> */}
             <p>Name: {myOrder.name}</p>
+
             <p>Tel: {myOrder.tel}</p>
+
             <p>Type: {myOrder.coffeeType}</p>
+
             <p>Temperature: {myOrder.temperature}</p>
+
             <p>Choice of Milk: {myOrder.milkChoice}</p>
+
             <p>No Foam: {myOrder.noFoam === true ? "Yes" : "No"}</p>
+
             <p>Cinnamon: {myOrder.cinnamon === true ? "Yes" : "No"}</p>
             <p>
               Caramel Drizzle: {myOrder.caramelDrizzle === true ? "Yes" : "No"}
             </p>
+
             <p>
               Whipping Cream: {myOrder.whippedCream === true ? "Yes" : "No"}
             </p>
+            <p>Special Instructions: {myOrder.special}</p>
+
             <button
               name="edit"
+              className="edit"
               data-cy="edit"
               onClick={() => editOrder(myOrder)}
             >

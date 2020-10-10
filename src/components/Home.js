@@ -25,6 +25,7 @@ const OrderButton = styled.button`
   font-size: 1.5rem;
   margin-top: 20px;
   border-radius: 20px;
+
   :hover {
     background-color: white;
     color: green;
@@ -36,7 +37,7 @@ const home = () => {
     <HomeDiv>
       <OrderTitle>Order your mouthwatering coffee here!</OrderTitle>
       <NavLink to="/order/coffee">
-        <OrderButton>Order Now!</OrderButton>
+        <OrderButton data-cy="HMOButton">Order Now!</OrderButton>
       </NavLink>
     </HomeDiv>
   );
